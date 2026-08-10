@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF14 無人島 稀有生物倒數時鐘</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #e0e0e0; 
+            --text-muted: #9e9e9e; 
+            --accent-color: #cda55a; 
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* 主標題 */
+        .main-title {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--text-main); 
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* 整合型資訊儀表板 */
+        .dashboard {
+            background: linear-gradient(145deg, #222 0%, #1a1a1a 100%);
+            border: 1px solid #333;
+            border-radius: var(--border-radius);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .dash-block {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+            gap: 8px; 
+        }
+
+        .dash-divider {
+            width: 1px;
+            height: 40px;
+            background-color: #444;
+        }
+
+        .dash-label {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .dash-val {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .dash-weather-name {
+            font-size: 1.75rem; 
+            font-weight: bold;
+            color: var(--accent-color);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            line-height: 1;
+        }
+
+        /* 標題與篩選器區塊 */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            margin: 0; 
+            padding: 0;
+            border: none; 
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .filter-select {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .filter-select:focus, .filter-select:hover {
+            border-color: var(--accent-color);
+        }
+
+        /* 稀有動物清單區塊 */
+        .animal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .animal-card {
+            background-color: var(--bg-card);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            order: 0;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+            will-change: transform, opacity;
+        }
+
+        .animal-card.hidden {
+            display: none !important;
+        }
+
+        .animal-card.fade-out-anim {
+            animation: fadeOutScale 0.25s ease forwards !important;
+        }
+
+        .animal-card.prepare-fade-in {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .animal-card.fade-in-anim {
+            animation: fadeInScale 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards !important;
+        }
+
+        @keyframes fadeOutScale {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.9); }
+        }
+
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .animal-card.is-moving {
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+            z-index: 10; 
+        }
+
+        .animal-card.active-now {
+            border-color: #4caf50;
+            background-color: rgba(76, 175, 80, 0.05);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.1);
+        }
+
+        .animal-card.captured-style {
+            opacity: 0.4;
+            filter: grayscale(100%);
+            border-color: #2a2a2a !important;
+            background-color: #171717 !important;
+            box-shadow: none !important;
+        }
+
+        .animal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+        }
+
+        .animal-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--text-main); 
+        }
+
+        .animal-size {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .size-badge {
+            display: inline-block;
+            min-width: 28px; 
+            text-align: center; 
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.95rem; 
+            color: #ffffff; 
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+        }
+
+        .size-S { background-color: #006030; } 
+        .size-M { background-color: #977C00; } 
+        .size-L { background-color: #842B00; } 
+
+        .animal-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; 
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+            padding-bottom: 4px;
+        }
+
+        /* 座標專用：橫跨兩欄的設定 */
+        .info-row.full-width {
+            grid-column: span 2;
+        }
+
+        .info-label {
+            color: #777;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .animal-time-box {
+            margin-top: auto;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.85rem;
+        }
+
+        .time-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .time-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .time-label {
+            color: var(--text-muted);
+        }
+
+        .time-val {
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        .capture-wrapper {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .capture-cb-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.95rem;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+        .capture-cb-label:hover {
+            color: var(--text-main);
+        }
+
+        .capture-cb-label input {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #555;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.02);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .capture-cb-label:hover input:not(:checked) {
+            border-color: var(--accent-color);
+        }
+
+        .capture-cb-label input:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .capture-cb-label input:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            width: 4px;
+            height: 8px;
+            border: solid var(--bg-dark);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .site-footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+        
+        .site-footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+        }
+        
+        .site-footer a:hover {
+            color: #f0c87a;
+            text-shadow: 0 0 5px rgba(205, 165, 90, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 16px;
+            }
+            .dash-divider {
+                display: none; 
+            }
+            .dash-block {
+                flex-direction: row; 
+                justify-content: space-between;
+                border-bottom: 1px solid #333;
+                padding-bottom: 8px;
+            }
+            .dash-block:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+            .animal-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .animal-grid {
+                grid-template-columns: 1fr;
+            }
+            .main-title {
+                font-size: 1.5rem;
+            }
+            .animal-info {
+                grid-template-columns: 1fr; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="main-title">FF14 無人島 稀有生物倒數時鐘</h1>
+
+    <div class="dashboard">
+        <div class="dash-block">
+            <span class="dash-label">LOCAL TIME</span>
+            <span class="dash-val" id="lt-clock">00:00:00</span>
+        </div>
+        <div class="dash-divider"></div>
+        <div class="dash-block">
+            <span class="dash-label">無人島天氣</span>
+            <span class="dash-weather-name" id="current-weather-name">--</span>
+        </div>
+        <div class="dash-divider"></div>
+        <div class="dash-block">
+            <span class="dash-label">EORZEA TIME</span>
+            <span class="dash-val" id="et-clock">00:00</span>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <h3 class="section-title">無人島稀有動物圖鑑</h3>
+        <div class="filter-group">
+            <div class="filter-item">
+                <span class="filter-label">基本素材：</span>
+                <select id="filter-basic" class="filter-select">
+                    <option value="all">全部</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <span class="filter-label">稀有素材：</span>
+                <select id="filter-rare" class="filter-select">
+                    <option value="all">全部</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="animal-grid" id="animal-grid">
+        <!-- JS 動態產生卡片 -->
+    </div>
+
+    <h3 class="section-title" style="margin-top: 40px; border-bottom: 2px solid #333; padding-bottom: 8px;">已捕捉</h3>
+    <div class="animal-grid" id="captured-grid">
+        <!-- JS 動態移入卡片 -->
+    </div>
+
+    <div class="site-footer">
+        <a href="https://www.threads.com/@silverflag8624" target="_blank" rel="noopener noreferrer">貓蟲@奧汀</a> 以 Gemini 整理
+    </div>
+</div>
+
+<script>
+    const EORZEA_MULTIPLIER = 3600 / 175; 
+    const EORZEA_8_HOURS_MS = 1400 * 1000; 
+
+    const zoneData = {
+        "island_sanctuary": {
+            name: "無人島 (Island Sanctuary)",
+            rates: [
+                { rate: 25, weather: "碧空" },
+                { rate: 70, weather: "晴朗" },
+                { rate: 80, weather: "陰雲" },
+                { rate: 85, weather: "小雨" },
+                { rate: 90, weather: "暴雨" },
+                { rate: 95, weather: "薄霧" },
+                { rate: 100, weather: "強風" }
+            ]
+        }
+    };
+
+    // 已套用更新後的座標資料
+    const animalData = [
+        { name: "樂園碧企鵝", size: "S", basicMat: "鳥蛋", rareMat: "絨毛", time: "12:00-15:00", weather: "任意", coords: "(X:19, Y:11)" },
+        { name: "黑羊", size: "S", basicMat: "乳汁", rareMat: "絨毛", time: "全天", weather: "晴朗", coords: "(X:20, Y:23)" },
+        { name: "紫晶魔石精", size: "S", basicMat: "獸毛", rareMat: "尖牙", time: "21:00-24:00", weather: "任意", coords: "地下 (X:28, Y:16)" },
+        { name: "毛爾波爾骨朵", size: "S", basicMat: "甲殼", rareMat: "尖牙", time: "03:00-06:00", weather: "陰雲", coords: "(X:19, Y:19)" },
+        { name: "狐猴", size: "S", basicMat: "獸毛", rareMat: "尖爪", time: "06:00-09:00", weather: "任意", coords: "(X:20, Y:26)" },
+        { name: "星點栗鼠", size: "S", basicMat: "獸毛", rareMat: "尖爪", time: "09:00-12:00", weather: "任意", coords: "(X:15, Y:19)" },
+        { name: "魔菇", size: "S", basicMat: "絨毛", rareMat: "獸毛", time: "15:00-18:00", weather: "小雨", coords: "(X:20, Y:27)" },
+        { name: "黃色礦爬蟲", size: "S", basicMat: "甲殼", rareMat: "尖牙", time: "全天", weather: "薄霧", coords: "(X:27, Y:19)" },
+        { name: "閃爍毛球", size: "S", basicMat: "絨毛", rareMat: "獸毛", time: "18:00-21:00", weather: "薄霧", coords: "(X:22, Y:20)" },
+        { name: "沙灘殼蟹", size: "S", basicMat: "甲殼", rareMat: "尖爪", time: "00:00-03:00", weather: "小雨", coords: "(X:17, Y:12)" },
+        { name: "樂園渡渡鳥", size: "M", basicMat: "羽毛", rareMat: "鳥蛋", time: "15:00-18:00", weather: "任意", coords: "(X:16, Y:12)" },
+        { name: "島嶼雄羚羊", size: "M", basicMat: "獸毛", rareMat: "角片", time: "18:00-21:00", weather: "任意", coords: "(X:20, Y:19)" },
+        { name: "樂園虎", size: "M", basicMat: "尖牙", rareMat: "獸毛", time: "18:00-21:00", weather: "晴朗", coords: "(X:15, Y:14)" },
+        { name: "雕齒獸", size: "M", basicMat: "尖爪", rareMat: "甲殼", time: "00:00-03:00", weather: "任意", coords: "(X:31, Y:11)" },
+        { name: "黑陸行鳥", size: "M", basicMat: "羽毛", rareMat: "獸毛", time: "全天", weather: "碧空", coords: "(X:13, Y:11)" },
+        { name: "猴面雀", size: "M", basicMat: "尖爪", rareMat: "絨毛", time: "12:00-15:00", weather: "晴朗", coords: "(X:25, Y:28)" },
+        { name: "阿爾科諾斯特", size: "M", basicMat: "羽毛", rareMat: "鳥蛋", time: "21:00-24:00", weather: "碧空", coords: "(X:23, Y:30)" },
+        { name: "巨水牛", size: "L", basicMat: "角片", rareMat: "乳汁", time: "全天", weather: "陰雲", coords: "(X:12, Y:17)" },
+        { name: "島嶼公山羊", size: "L", basicMat: "角片", rareMat: "絨毛", time: "03:00-06:00", weather: "任意", coords: "(X:26, Y:22)" },
+        { name: "黃金背魔鳥", size: "L", basicMat: "羽毛", rareMat: "鳥蛋", time: "全天", weather: "小雨", coords: "(X:31, Y:28)" },
+        { name: "巨礦爬蟲", size: "L", basicMat: "尖牙", rareMat: "甲殼", time: "03:00-06:00", weather: "晴朗", coords: "地下 (X:24, Y:21)" },
+        { name: "無齒翼龍", size: "L", basicMat: "尖爪", rareMat: "角片", time: "09:00-12:00", weather: "碧空", coords: "(X:25, Y:16)" },
+        { name: "獅鷲", size: "L", basicMat: "羽毛", rareMat: "尖爪", time: "15:00-18:00", weather: "碧空", coords: "(X:14, Y:22)" },
+        { name: "古怪魔石精", size: "L", basicMat: "尖牙", rareMat: "獸毛", time: "00:00-03:00", weather: "薄霧", coords: "地下 (X:24, Y:18)" },
+        { name: "短吻鱷", size: "L", basicMat: "尖爪", rareMat: "尖牙", time: "06:00-09:00", weather: "暴雨", coords: "(X:17, Y:24)" },
+        { name: "樂園疣豬", size: "L", basicMat: "角片", rareMat: "尖牙", time: "全天", weather: "暴雨", coords: "(X:17, Y:16)" },
+        { name: "古菩猩猩", size: "L", basicMat: "尖牙", rareMat: "尖爪", time: "09:00-12:00", weather: "陰雲", coords: "(X:33, Y:16)" },
+        { name: "魔界花", size: "L", basicMat: "尖牙", rareMat: "甲殼", time: "21:00-24:00", weather: "暴雨", coords: "(X:29, Y:24)" },
+        { name: "堅鋼龜", size: "L", basicMat: "甲殼", rareMat: "尖爪", time: "12:00-15:00", weather: "薄霧", coords: "(X:31, Y:11)" }
+    ];
+
+    animalData.forEach((animal, index) => {
+        animal.originalIndex = index;
+    });
+
+    let capturedAnimals = [];
+    try {
+        const saved = localStorage.getItem('ff14_island_captured');
+        if (saved) capturedAnimals = JSON.parse(saved);
+    } catch(e) {
+        console.error("讀取捕捉紀錄失敗", e);
+    }
+
+    let currentSortSignature = "";
+    
+    let currentBasicFilter = 'all';
+    let currentRareFilter = 'all';
+    let isFiltering = false;
+
+    const filterBasicEl = document.getElementById('filter-basic');
+    const filterRareEl = document.getElementById('filter-rare');
+
+    const basicMats = [...new Set(animalData.map(a => a.basicMat))].sort();
+    const rareMats = [...new Set(animalData.map(a => a.rareMat))].sort();
+
+    basicMats.forEach(mat => {
+        const opt = document.createElement('option');
+        opt.value = mat;
+        opt.textContent = mat;
+        filterBasicEl.appendChild(opt);
+    });
+
+    rareMats.forEach(mat => {
+        const opt = document.createElement('option');
+        opt.value = mat;
+        opt.textContent = mat;
+        filterRareEl.appendChild(opt);
+    });
+
+    async function applyFilterAnimation() {
+        if (isFiltering) return;
+        isFiltering = true;
+
+        const goingOut = [];
+        const comingIn = [];
+        const allCards = animalData.map(a => document.getElementById(`animal-card-${a.originalIndex}`));
+
+        animalData.forEach((animal) => {
+            const card = document.getElementById(`animal-card-${animal.originalIndex}`);
+            const matchBasic = currentBasicFilter === 'all' || animal.basicMat === currentBasicFilter;
+            const matchRare = currentRareFilter === 'all' || animal.rareMat === currentRareFilter;
+            const shouldBeVisible = matchBasic && matchRare;
+            
+            const isCurrentlyVisible = !card.classList.contains('hidden');
+
+            if (isCurrentlyVisible && !shouldBeVisible) {
+                goingOut.push(card);
+            } else if (!isCurrentlyVisible && shouldBeVisible) {
+                comingIn.push(card);
+            }
+        });
+
+        if (goingOut.length === 0 && comingIn.length === 0) {
+            isFiltering = false;
+            return;
+        }
+
+        goingOut.forEach(card => card.classList.add('fade-out-anim'));
+        if (goingOut.length > 0) {
+            await new Promise(r => setTimeout(r, 250));
+        }
+
+        const firstPositions = {};
+        allCards.forEach(card => {
+            if (!card.classList.contains('hidden') && !goingOut.includes(card)) {
+                firstPositions[card.id] = card.getBoundingClientRect();
+            }
+        });
+
+        goingOut.forEach(card => {
+            card.classList.add('hidden');
+            card.classList.remove('fade-out-anim');
+        });
+        comingIn.forEach(card => {
+            card.classList.remove('hidden');
+            card.classList.add('prepare-fade-in');
+        });
+
+        updateAnimalSpawns(true);
+
+        const lastPositions = {};
+        allCards.forEach(card => {
+            if (!card.classList.contains('hidden')) {
+                lastPositions[card.id] = card.getBoundingClientRect();
+            }
+        });
+
+        allCards.forEach(card => {
+            if (comingIn.includes(card)) {
+                card.classList.remove('prepare-fade-in');
+                card.classList.add('fade-in-anim');
+                if(card._fadeTimeout) clearTimeout(card._fadeTimeout);
+                card._fadeTimeout = setTimeout(() => card.classList.remove('fade-in-anim'), 400);
+            } else if (!card.classList.contains('hidden') && firstPositions[card.id]) {
+                const first = firstPositions[card.id];
+                const last = lastPositions[card.id];
+                const invertX = first.left - last.left;
+                const invertY = first.top - last.top;
+
+                if (invertX !== 0 || invertY !== 0) {
+                    card.classList.remove('is-moving');
+                    card.style.transform = `translate(${invertX}px, ${invertY}px)`;
+                    card.offsetHeight; 
+                    card.classList.add('is-moving');
+                    card.style.transform = ''; 
+
+                    if (card._flipTimeout) clearTimeout(card._flipTimeout);
+                    card._flipTimeout = setTimeout(() => {
+                        card.classList.remove('is-moving');
+                    }, 600);
+                }
+            }
+        });
+
+        isFiltering = false;
+    }
+
+    filterBasicEl.addEventListener('change', (e) => {
+        currentBasicFilter = e.target.value;
+        applyFilterAnimation();
+    });
+
+    filterRareEl.addEventListener('change', (e) => {
+        currentRareFilter = e.target.value;
+        applyFilterAnimation();
+    });
+
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('capture-cb')) {
+            const idx = parseInt(e.target.dataset.index, 10);
+            if (e.target.checked) {
+                if (!capturedAnimals.includes(idx)) capturedAnimals.push(idx);
+            } else {
+                capturedAnimals = capturedAnimals.filter(i => i !== idx);
+            }
+            localStorage.setItem('ff14_island_captured', JSON.stringify(capturedAnimals));
+            updateAnimalSpawns(); 
+        }
+    });
+
+    function calculateForecastTarget(date) {
+        const unixSeconds = Math.floor(date.getTime() / 1000);
+        const bell = Math.floor(unixSeconds / 175);
+        const increment = (bell + 8 - (bell % 8)) % 24;
+        let totalDays = Math.floor(unixSeconds / 4200);
+        totalDays = (totalDays << 32) >>> 0; 
+        const calcBase = (totalDays * 100) + increment;
+        const step1 = ((calcBase << 11) ^ calcBase) >>> 0;
+        const step2 = ((step1 >>> 8) ^ step1) >>> 0;
+        return step2 % 100;
+    }
+
+    function getWeatherName(zoneId, target) {
+        const rates = zoneData[zoneId].rates;
+        for (let i = 0; i < rates.length; i++) {
+            if (target < rates[i].rate) { return rates[i].weather; }
+        }
+        return "未知";
+    }
+
+    function formatEorzeaTime(date) {
+        const et = new Date(date.getTime() * EORZEA_MULTIPLIER);
+        const h = String(et.getUTCHours()).padStart(2, '0');
+        const m = String(et.getUTCMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+    }
+
+    function formatCountdown(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const s = String(totalSeconds % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function findNextSpawnInfo(animal, nowSec) {
+        let blockStartSec = nowSec - (nowSec % 1400); 
+        for (let i = 0; i < 1852; i++) {
+            let testBlockSec = blockStartSec + (i * 1400);
+            let target = calculateForecastTarget(new Date(testBlockSec * 1000));
+            let weatherName = getWeatherName("island_sanctuary", target);
+            
+            if (animal.weather !== "任意" && weatherName !== animal.weather) continue;
+            
+            let etDate = new Date(testBlockSec * 1000 * EORZEA_MULTIPLIER);
+            let blockEtHour = etDate.getUTCHours();
+            let blockEtEndHour = blockEtHour + 8;
+            
+            let startHour = 0;
+            let endHour = 24;
+            
+            if (animal.time !== "全天") {
+                let timeParts = animal.time.split("-");
+                startHour = parseInt(timeParts[0], 10);
+                endHour = parseInt(timeParts[1], 10);
+            }
+            
+            let overlapStart = Math.max(startHour, blockEtHour);
+            let overlapEnd = Math.min(endHour, blockEtEndHour);
+            
+            if (overlapStart < overlapEnd) {
+                let spawnStartSec = testBlockSec + (overlapStart - blockEtHour) * 175;
+                let spawnEndSec = testBlockSec + (overlapEnd - blockEtHour) * 175;
+                
+                if (spawnEndSec > nowSec) return { start: spawnStartSec, end: spawnEndSec };
+            }
+        }
+        return null; 
+    }
+
+    function formatLocalDateTime(date) {
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        const h = String(date.getHours()).padStart(2, '0');
+        const min = String(date.getMinutes()).padStart(2, '0');
+        const s = String(date.getSeconds()).padStart(2, '0');
+        return `${m}/${d} ${h}:${min}:${s}`;
+    }
+
+    function formatCountdownHms(totalSeconds) {
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    const ltClockEl = document.getElementById('lt-clock');
+    const etClockEl = document.getElementById('et-clock');
+    const curWeatherNameEl = document.getElementById('current-weather-name');
+    const animalGridEl = document.getElementById('animal-grid');
+    const capturedGridEl = document.getElementById('captured-grid');
+
+    function renderAnimals() {
+        animalGridEl.innerHTML = '';
+        animalData.forEach((animal) => {
+            const index = animal.originalIndex;
+            const isCaptured = capturedAnimals.includes(index);
+            const card = document.createElement('div');
+            card.className = 'animal-card';
+            card.id = `animal-card-${index}`;
+            card.innerHTML = `
+                <div class="animal-header">
+                    <div class="animal-name">${animal.name}</div>
+                    <div class="animal-size">SIZE: <span class="size-badge size-${animal.size}">${animal.size}</span></div>
+                </div>
+                <div class="animal-info">
+                    <div class="info-row">
+                        <span class="info-label">時間</span>
+                        <span class="info-value" style="color: #e0e0e0;">${animal.time}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">基本</span>
+                        <span class="info-value" style="color: #e0e0e0;">${animal.basicMat}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">天氣</span>
+                        <span class="info-value" style="color: #e0e0e0;">${animal.weather}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">稀有</span>
+                        <span class="info-value" style="color: var(--accent-color);">${animal.rareMat}</span>
+                    </div>
+                    <div class="info-row full-width">
+                        <span class="info-label">座標</span>
+                        <span class="info-value" style="color: #e0e0e0; font-family: monospace;">${animal.coords}</span>
+                    </div>
+                </div>
+                <div class="animal-time-box">
+                    <div class="time-row">
+                        <span class="time-label">下一次出現：</span>
+                        <span class="time-val" id="next-time-${index}">計算中...</span>
+                    </div>
+                    <div class="time-row">
+                        <span class="time-label">出現倒數：</span>
+                        <span class="time-val" id="countdown-${index}">00:00:00</span>
+                    </div>
+                </div>
+                <div class="capture-wrapper">
+                    <label class="capture-cb-label">
+                        <input type="checkbox" class="capture-cb" data-index="${index}" ${isCaptured ? 'checked' : ''}>
+                        已捕捉
+                    </label>
+                </div>
+            `;
+            animalGridEl.appendChild(card);
+        });
+    }
+
+    function updateAnimalSpawns(skipFlip = false) {
+        const nowSec = Math.floor(Date.now() / 1000);
+        const uncaptured = [];
+        const captured = [];
+        
+        animalData.forEach((animal) => {
+            const index = animal.originalIndex;
+            const isCaptured = capturedAnimals.includes(index);
+            const cardEl = document.getElementById(`animal-card-${index}`);
+            
+            const matchBasic = currentBasicFilter === 'all' || animal.basicMat === currentBasicFilter;
+            const matchRare = currentRareFilter === 'all' || animal.rareMat === currentRareFilter;
+            const isVisible = matchBasic && matchRare;
+
+            if (!animal._spawnInfo || nowSec >= animal._spawnInfo.end) {
+                animal._spawnInfo = findNextSpawnInfo(animal, nowSec);
+            }
+            
+            const info = animal._spawnInfo;
+            const timeEl = document.getElementById(`next-time-${index}`);
+            const countdownEl = document.getElementById(`countdown-${index}`);
+            
+            if (info) {
+                if (nowSec >= info.start && nowSec < info.end) {
+                    if (cardEl && !isCaptured) cardEl.classList.add('active-now');
+                    if (timeEl) {
+                        timeEl.textContent = "現在可捕捉！";
+                        timeEl.style.color = "#4caf50"; 
+                    }
+                    if (countdownEl) {
+                        const remain = info.end - nowSec;
+                        countdownEl.textContent = formatCountdownHms(remain) + " (結束)";
+                        countdownEl.style.color = "#4caf50"; 
+                    }
+                } else {
+                    if (cardEl) cardEl.classList.remove('active-now');
+                    if (timeEl) {
+                        timeEl.textContent = formatLocalDateTime(new Date(info.start * 1000));
+                        timeEl.style.color = "var(--accent-color)";
+                    }
+                    if (countdownEl) {
+                        const diffSec = info.start - nowSec;
+                        countdownEl.textContent = formatCountdownHms(diffSec);
+                        countdownEl.style.color = "#ff9800"; 
+                    }
+                }
+            } else {
+                if (cardEl) cardEl.classList.remove('active-now');
+                if (timeEl) {
+                    timeEl.textContent = "過於罕見(>30天)";
+                    timeEl.style.color = "#9e9e9e";
+                }
+                if (countdownEl) {
+                    countdownEl.textContent = "--:--:--";
+                    countdownEl.style.color = "#9e9e9e";
+                }
+            }
+
+            if (isVisible) {
+                if (cardEl) cardEl.classList.remove('hidden');
+                if (isCaptured) {
+                    captured.push(animal);
+                } else {
+                    uncaptured.push(animal);
+                }
+            } else {
+                if (cardEl) cardEl.classList.add('hidden');
+            }
+        });
+
+        uncaptured.sort((a, b) => {
+            const infoA = a._spawnInfo;
+            const infoB = b._spawnInfo;
+            if (!infoA && !infoB) return 0;
+            if (!infoA) return 1;
+            if (!infoB) return -1;
+
+            const isActiveA = (nowSec >= infoA.start && nowSec < infoA.end);
+            const isActiveB = (nowSec >= infoB.start && nowSec < infoB.end);
+
+            if (isActiveA && isActiveB) return infoA.end - infoB.end;
+            else if (isActiveA) return -1;
+            else if (isActiveB) return 1;
+            else return infoA.start - infoB.start;
+        });
+
+        captured.sort((a, b) => a.originalIndex - b.originalIndex);
+
+        const newSortSignature = uncaptured.map(a => a.originalIndex).join(',') + '|' + captured.map(a => a.originalIndex).join(',');
+
+        if (currentSortSignature !== newSortSignature || skipFlip) {
+            const isInitialRender = (currentSortSignature === "");
+            currentSortSignature = newSortSignature;
+
+            const allCards = animalData.map(a => document.getElementById(`animal-card-${a.originalIndex}`));
+            
+            let firstPositions = {};
+            if (!isInitialRender && !skipFlip) {
+                allCards.forEach(card => {
+                    if (!card.classList.contains('hidden')) {
+                        firstPositions[card.id] = card.getBoundingClientRect();
+                    }
+                });
+            }
+
+            uncaptured.forEach((animal, orderIndex) => {
+                const card = document.getElementById(`animal-card-${animal.originalIndex}`);
+                card.classList.remove('captured-style');
+                card.style.order = orderIndex;
+                if (card.parentElement !== animalGridEl) {
+                    animalGridEl.appendChild(card);
+                }
+            });
+
+            captured.forEach((animal, orderIndex) => {
+                const card = document.getElementById(`animal-card-${animal.originalIndex}`);
+                card.classList.remove('active-now'); 
+                card.classList.add('captured-style');
+                card.style.order = orderIndex;
+                if (card.parentElement !== capturedGridEl) {
+                    capturedGridEl.appendChild(card);
+                }
+            });
+
+            if (!isInitialRender && !skipFlip) {
+                const lastPositions = {};
+                allCards.forEach(card => {
+                    if (!card.classList.contains('hidden')) {
+                        lastPositions[card.id] = card.getBoundingClientRect();
+                    }
+                });
+
+                allCards.forEach((card) => {
+                    if (!card.classList.contains('hidden') && firstPositions[card.id] && lastPositions[card.id]) {
+                        const first = firstPositions[card.id];
+                        const last = lastPositions[card.id];
+                        const invertX = first.left - last.left;
+                        const invertY = first.top - last.top;
+
+                        if (invertX !== 0 || invertY !== 0) {
+                            card.classList.remove('is-moving');
+                            card.style.transform = `translate(${invertX}px, ${invertY}px)`;
+                            card.offsetHeight; 
+                            card.classList.add('is-moving');
+                            card.style.transform = ''; 
+
+                            if (card._flipTimeout) clearTimeout(card._flipTimeout);
+                            card._flipTimeout = setTimeout(() => {
+                                card.classList.remove('is-moving');
+                            }, 600);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    function updateWeatherUI() {
+        const zoneId = "island_sanctuary"; 
+        const now = new Date();
+        const unixSeconds = Math.floor(now.getTime() / 1000);
+        
+        const currentBlockStartSeconds = unixSeconds - (unixSeconds % 1400);
+        const currentBlockStartDate = new Date(currentBlockStartSeconds * 1000);
+        
+        const currentTarget = calculateForecastTarget(currentBlockStartDate);
+        if(curWeatherNameEl) curWeatherNameEl.textContent = getWeatherName(zoneId, currentTarget);
+    }
+
+    function tick() {
+        const now = new Date();
+        
+        const ltH = String(now.getHours()).padStart(2, '0');
+        const ltM = String(now.getMinutes()).padStart(2, '0');
+        const ltS = String(now.getSeconds()).padStart(2, '0');
+        if(ltClockEl) ltClockEl.textContent = `${ltH}:${ltM}:${ltS}`;
+
+        const et = new Date(now.getTime() * EORZEA_MULTIPLIER);
+        const etH = String(et.getUTCHours()).padStart(2, '0');
+        const etM = String(et.getUTCMinutes()).padStart(2, '0');
+        if(etClockEl) etClockEl.textContent = `${etH}:${etM}`;
+
+        const unixSeconds = Math.floor(now.getTime() / 1000);
+        const currentBlockStartSeconds = unixSeconds - (unixSeconds % 1400);
+        const nextBlockStartSeconds = currentBlockStartSeconds + 1400;
+        const msRemaining = (nextBlockStartSeconds * 1000) - now.getTime();
+        
+        if (!isFiltering) {
+            updateAnimalSpawns();
+        }
+
+        if (msRemaining < 1000 || msRemaining > (EORZEA_8_HOURS_MS - 1000)) {
+            setTimeout(updateWeatherUI, 1000);
+        }
+
+        requestAnimationFrame(tick);
+    }
+
+    renderAnimals(); 
+    updateWeatherUI();
+    
+    const initialNow = new Date();
+    const initialEt = new Date(initialNow.getTime() * EORZEA_MULTIPLIER);
+    const initialEtH = String(initialEt.getUTCHours()).padStart(2, '0');
+    const initialEtM = String(initialEt.getUTCMinutes()).padStart(2, '0');
+    if(etClockEl) etClockEl.textContent = `${initialEtH}:${initialEtM}`;
+    
+    tick();
+
+</script>
+</body>
+</html>
