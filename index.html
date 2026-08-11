@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FF14 無人島 稀有生物倒數時鐘</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QW0V3RD9KY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-QW0V3RD9KY');
+    </script>
+
     <style>
         :root {
             --bg-dark: #121212;
@@ -493,7 +504,8 @@
         <!-- JS 動態產生卡片 -->
     </div>
 
-    <h3 class="section-title" style="margin-top: 40px; border-bottom: 2px solid #333; padding-bottom: 8px;">已捕捉</h3>
+    <!-- 已修正：加入了 margin-bottom: 15px; 讓水平線下方產生等距間隔 -->
+    <h3 class="section-title" style="margin-top: 40px; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 8px;">已捕捉</h3>
     <div class="animal-grid" id="captured-grid">
         <!-- JS 動態移入卡片 -->
     </div>
@@ -613,13 +625,11 @@
     let currentRareFilter = 'all';
     let isFiltering = false;
 
-    // ✅ 自訂素材排序陣列
     const customMatOrder = ["絨毛", "尖爪", "獸毛", "羽毛", "鳥蛋", "甲殼", "尖牙", "角片", "乳汁"];
 
     const filterBasicEl = document.getElementById('filter-basic');
     const filterRareEl = document.getElementById('filter-rare');
 
-    // ✅ 應用自訂排序
     const basicMats = [...new Set(animalData.map(a => a.basicMat))].sort((a, b) => {
         return customMatOrder.indexOf(a) - customMatOrder.indexOf(b);
     });
