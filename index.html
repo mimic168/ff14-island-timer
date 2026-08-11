@@ -581,10 +581,11 @@
         }
     };
 
+    // ✅ 紫晶魔石精資料更新：加入 coords2 與 mapImg2
     const animalData = [
         { name: "樂園碧企鵝", size: "S", basicMat: "鳥蛋", rareMat: "絨毛", time: "12:00-15:00", weather: "任意", coords: "(X:19, Y:11)", mapImg: "./images/map1.png", mobImg: "./images/mob1.png" },
         { name: "黑羊", size: "S", basicMat: "乳汁", rareMat: "絨毛", time: "全天", weather: "晴朗", coords: "(X:20, Y:23)", mapImg: "./images/map2.png", mobImg: "./images/mob2.png" },
-        { name: "紫晶魔石精", size: "S", basicMat: "獸毛", rareMat: "尖牙", time: "21:00-24:00", weather: "任意", coords: "地下 (X:28, Y:16)", mapImg: "./images/map3.png", mobImg: "./images/mob3.png" },
+        { name: "紫晶魔石精", size: "S", basicMat: "獸毛", rareMat: "尖牙", time: "21:00-24:00", weather: "任意", coords: "地下 (X:28, Y:16)", coords2: "(X:23, Y:18)", mapImg: "./images/map3.png", mapImg2: "./images/map3-2.png", mobImg: "./images/mob3.png" },
         { name: "毛爾波爾骨朵", size: "S", basicMat: "甲殼", rareMat: "尖牙", time: "03:00-06:00", weather: "陰雲", coords: "(X:19, Y:19)", mapImg: "./images/map4.png", mobImg: "./images/mob4.png" },
         { name: "狐猴", size: "S", basicMat: "獸毛", rareMat: "尖爪", time: "06:00-09:00", weather: "任意", coords: "(X:20, Y:26)", mapImg: "./images/map5.png", mobImg: "./images/mob5.png" },
         { name: "星點栗鼠", size: "S", basicMat: "獸毛", rareMat: "尖爪", time: "09:00-12:00", weather: "任意", coords: "(X:15, Y:19)", mapImg: "./images/map6.png", mobImg: "./images/mob6.png" },
@@ -656,7 +657,8 @@
         filterRareEl.appendChild(opt);
     });
 
-    function openModal(idx) {
+    // ✅ 彈窗邏輯更新：接受 mapIndex 參數來切換不同的地圖圖片
+    function openModal(idx, mapIndex = '1') {
         const animal = animalData.find(a => a.originalIndex === idx);
         if(!animal) return;
 
@@ -665,8 +667,14 @@
         const mapImgEl = document.getElementById('modal-map-img');
         const mobImgEl = document.getElementById('modal-mob-img');
 
-        if (animal.mapImg) {
-            mapImgEl.src = animal.mapImg;
+        // 判斷要載入哪一張地圖
+        let targetMapImg = animal.mapImg;
+        if (mapIndex === '2' && animal.mapImg2) {
+            targetMapImg = animal.mapImg2;
+        }
+
+        if (targetMapImg) {
+            mapImgEl.src = targetMapImg;
             mapImgEl.style.display = 'block';
         } else {
             mapImgEl.src = "";
@@ -695,7 +703,8 @@
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal-trigger')) {
             const idx = parseInt(e.target.dataset.index, 10);
-            openModal(idx);
+            const mapIdx = e.target.dataset.map || '1'; // 取得點擊的對應地圖編號
+            openModal(idx, mapIdx);
         }
         
         if (e.target.classList.contains('capture-cb')) {
@@ -926,9 +935,15 @@
             const card = document.createElement('div');
             card.className = 'animal-card';
             card.id = `animal-card-${index}`;
+
+            // ✅ 判斷是否為複數座標，並組裝對應的 HTML
+            const coordsDisplay = animal.coords2 
+                ? `<span class="modal-trigger" data-index="${index}" data-map="1">${animal.coords}</span> <span style="text-decoration: none; color: #777;">/</span> <span class="modal-trigger" data-index="${index}" data-map="2">${animal.coords2}</span>`
+                : `<span class="modal-trigger" data-index="${index}" data-map="1">${animal.coords}</span>`;
+
             card.innerHTML = `
                 <div class="animal-header">
-                    <div class="animal-name modal-trigger" data-index="${index}">${animal.name}</div>
+                    <div class="animal-name modal-trigger" data-index="${index}" data-map="1">${animal.name}</div>
                     <div class="animal-size">SIZE: <span class="size-badge size-${animal.size}">${animal.size}</span></div>
                 </div>
                 <div class="animal-info">
@@ -950,7 +965,8 @@
                     </div>
                     <div class="info-row full-width">
                         <span class="info-label">座標</span>
-                        <span class="info-value modal-trigger" data-index="${index}" style="color: #e0e0e0; font-family: monospace;" title="點擊檢視地圖與外觀">${animal.coords}</span>
+                        <!-- ✅ 這裡替換為支援雙座標的顯示邏輯 -->
+                        <span class="info-value" style="color: #e0e0e0; font-family: monospace;" title="點擊檢視地圖與外觀">${coordsDisplay}</span>
                     </div>
                 </div>
                 <div class="animal-time-box">
