@@ -310,6 +310,13 @@
         .time-label { color: var(--text-muted); }
         .time-val { font-family: monospace; font-weight: bold; }
 
+        /* 分隔線樣式 */
+        .time-divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 6px 0;
+        }
+
         .capture-wrapper {
             margin-top: 12px;
             padding-top: 12px;
@@ -649,7 +656,6 @@
         filterRareEl.appendChild(opt);
     });
 
-    // 彈窗功能邏輯
     function openModal(idx) {
         const animal = animalData.find(a => a.originalIndex === idx);
         if(!animal) return;
@@ -659,7 +665,6 @@
         const mapImgEl = document.getElementById('modal-map-img');
         const mobImgEl = document.getElementById('modal-mob-img');
 
-        // 地圖圖片處理
         if (animal.mapImg) {
             mapImgEl.src = animal.mapImg;
             mapImgEl.style.display = 'block';
@@ -668,7 +673,6 @@
             mapImgEl.style.display = 'none';
         }
 
-        // 怪物圖片處理
         if (animal.mobImg) {
             mobImgEl.src = animal.mobImg;
             mobImgEl.style.display = 'block';
@@ -684,12 +688,10 @@
         document.getElementById('image-modal').classList.remove('show');
     }
 
-    // 點擊背景黑底也能關閉彈窗
     document.getElementById('image-modal').addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
 
-    // 動態綁定點擊事件
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal-trigger')) {
             const idx = parseInt(e.target.dataset.index, 10);
@@ -875,6 +877,25 @@
         return null; 
     }
 
+    function getContinuousSpawn(animal, nowSec) {
+        let firstInfo = findNextSpawnInfo(animal, nowSec);
+        if (!firstInfo) return null;
+
+        let mergedInfo = { start: firstInfo.start, end: firstInfo.end };
+        let safetyCounter = 0; 
+        
+        while (safetyCounter < 50) {
+            safetyCounter++;
+            let nextInfo = findNextSpawnInfo(animal, mergedInfo.end);
+            if (nextInfo && nextInfo.start === mergedInfo.end) {
+                mergedInfo.end = nextInfo.end;
+            } else {
+                break; 
+            }
+        }
+        return mergedInfo;
+    }
+
     function formatLocalDateTime(date) {
         const m = String(date.getMonth() + 1).padStart(2, '0');
         const d = String(date.getDate()).padStart(2, '0');
@@ -941,6 +962,17 @@
                         <span class="time-label">出現倒數：</span>
                         <span class="time-val" id="countdown-${index}">00:00:00</span>
                     </div>
+                    <!-- ✅ 分隔線 -->
+                    <div class="time-divider"></div>
+                    <!-- ✅ 新增下下一次出現時間 -->
+                    <div class="time-row">
+                        <span class="time-label" style="color: #757575;">下下一次出現：</span>
+                        <span class="time-val" id="next-next-time-${index}" style="color: #757575;">--/-- --:--:--</span>
+                    </div>
+                    <div class="time-row">
+                        <span class="time-label" style="color: #757575;">休眠期：</span>
+                        <span class="time-val" id="dormancy-${index}" style="color: #757575;">--:--:--</span>
+                    </div>
                 </div>
                 <div class="capture-wrapper">
                     <label class="capture-cb-label">
@@ -968,13 +1000,37 @@
             const isVisible = matchBasic && matchRare;
 
             if (!animal._spawnInfo || nowSec >= animal._spawnInfo.end) {
-                animal._spawnInfo = findNextSpawnInfo(animal, nowSec);
+                animal._spawnInfo = getContinuousSpawn(animal, nowSec);
+                
+                if (animal._spawnInfo) {
+                    let nextNextSpawn = getContinuousSpawn(animal, animal._spawnInfo.end);
+                    if (nextNextSpawn) {
+                        let dormancySec = nextNextSpawn.start - animal._spawnInfo.end;
+                        animal._dormancyStr = formatCountdownHms(dormancySec);
+                        animal._nextNextTimeStr = formatLocalDateTime(new Date(nextNextSpawn.start * 1000));
+                    } else {
+                        animal._dormancyStr = "未知";
+                        animal._nextNextTimeStr = "未知";
+                    }
+                } else {
+                    animal._dormancyStr = "--:--:--";
+                    animal._nextNextTimeStr = "--/-- --:--:--";
+                }
             }
             
             const info = animal._spawnInfo;
             const timeEl = document.getElementById(`next-time-${index}`);
             const countdownEl = document.getElementById(`countdown-${index}`);
+            const dormancyEl = document.getElementById(`dormancy-${index}`); 
+            const nextNextTimeEl = document.getElementById(`next-next-time-${index}`); 
             
+            if (dormancyEl) {
+                dormancyEl.textContent = animal._dormancyStr || "--:--:--";
+            }
+            if (nextNextTimeEl) {
+                nextNextTimeEl.textContent = animal._nextNextTimeStr || "--/-- --:--:--";
+            }
+
             if (info) {
                 if (nowSec >= info.start && nowSec < info.end) {
                     if (cardEl && !isCaptured) cardEl.classList.add('active-now');
@@ -1110,7 +1166,6 @@
         }
     }
 
-    // ✅ 重大修正：加入 lastWeatherBlockSec 記錄當前時段，避免背景分頁休眠錯過更新
     let lastWeatherBlockSec = 0; 
 
     function updateWeatherUI() {
@@ -1119,7 +1174,6 @@
         const unixSeconds = Math.floor(now.getTime() / 1000);
         const currentBlockStartSeconds = unixSeconds - (unixSeconds % 1400);
         
-        // 如果時段沒變，就直接跳出，節省效能
         if (currentBlockStartSeconds === lastWeatherBlockSec) return;
         lastWeatherBlockSec = currentBlockStartSeconds;
 
@@ -1145,7 +1199,6 @@
             updateAnimalSpawns();
         }
 
-        // ✅ 讓每一次 tick 都去檢查天氣時段是否改變，即使背景休眠醒來也會瞬間更新
         updateWeatherUI();
 
         requestAnimationFrame(tick);
