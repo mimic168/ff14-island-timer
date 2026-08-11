@@ -229,7 +229,6 @@
             color: var(--text-main); 
         }
         
-        /* 針對動物名稱移除底線 */
         .animal-name.modal-trigger {
             text-decoration: none; 
         }
@@ -1111,14 +1110,20 @@
         }
     }
 
+    // ✅ 重大修正：加入 lastWeatherBlockSec 記錄當前時段，避免背景分頁休眠錯過更新
+    let lastWeatherBlockSec = 0; 
+
     function updateWeatherUI() {
         const zoneId = "island_sanctuary"; 
         const now = new Date();
         const unixSeconds = Math.floor(now.getTime() / 1000);
-        
         const currentBlockStartSeconds = unixSeconds - (unixSeconds % 1400);
-        const currentBlockStartDate = new Date(currentBlockStartSeconds * 1000);
         
+        // 如果時段沒變，就直接跳出，節省效能
+        if (currentBlockStartSeconds === lastWeatherBlockSec) return;
+        lastWeatherBlockSec = currentBlockStartSeconds;
+
+        const currentBlockStartDate = new Date(currentBlockStartSeconds * 1000);
         const currentTarget = calculateForecastTarget(currentBlockStartDate);
         if(curWeatherNameEl) curWeatherNameEl.textContent = getWeatherName(zoneId, currentTarget);
     }
@@ -1136,18 +1141,12 @@
         const etM = String(et.getUTCMinutes()).padStart(2, '0');
         if(etClockEl) etClockEl.textContent = `${etH}:${etM}`;
 
-        const unixSeconds = Math.floor(now.getTime() / 1000);
-        const currentBlockStartSeconds = unixSeconds - (unixSeconds % 1400);
-        const nextBlockStartSeconds = currentBlockStartSeconds + 1400;
-        const msRemaining = (nextBlockStartSeconds * 1000) - now.getTime();
-        
         if (!isFiltering) {
             updateAnimalSpawns();
         }
 
-        if (msRemaining < 1000 || msRemaining > (EORZEA_8_HOURS_MS - 1000)) {
-            setTimeout(updateWeatherUI, 1000);
-        }
+        // ✅ 讓每一次 tick 都去檢查天氣時段是否改變，即使背景休眠醒來也會瞬間更新
+        updateWeatherUI();
 
         requestAnimationFrame(tick);
     }
