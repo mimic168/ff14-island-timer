@@ -613,11 +613,19 @@
     let currentRareFilter = 'all';
     let isFiltering = false;
 
+    // ✅ 自訂素材排序陣列
+    const customMatOrder = ["絨毛", "尖爪", "獸毛", "羽毛", "鳥蛋", "甲殼", "尖牙", "角片", "乳汁"];
+
     const filterBasicEl = document.getElementById('filter-basic');
     const filterRareEl = document.getElementById('filter-rare');
 
-    const basicMats = [...new Set(animalData.map(a => a.basicMat))].sort();
-    const rareMats = [...new Set(animalData.map(a => a.rareMat))].sort();
+    // ✅ 應用自訂排序
+    const basicMats = [...new Set(animalData.map(a => a.basicMat))].sort((a, b) => {
+        return customMatOrder.indexOf(a) - customMatOrder.indexOf(b);
+    });
+    const rareMats = [...new Set(animalData.map(a => a.rareMat))].sort((a, b) => {
+        return customMatOrder.indexOf(a) - customMatOrder.indexOf(b);
+    });
 
     basicMats.forEach(mat => {
         const opt = document.createElement('option');
