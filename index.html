@@ -581,7 +581,6 @@
         }
     };
 
-    // ✅ 紫晶魔石精資料更新：加入 coords2 與 mapImg2
     const animalData = [
         { name: "樂園碧企鵝", size: "S", basicMat: "鳥蛋", rareMat: "絨毛", time: "12:00-15:00", weather: "任意", coords: "(X:19, Y:11)", mapImg: "./images/map1.png", mobImg: "./images/mob1.png" },
         { name: "黑羊", size: "S", basicMat: "乳汁", rareMat: "絨毛", time: "全天", weather: "晴朗", coords: "(X:20, Y:23)", mapImg: "./images/map2.png", mobImg: "./images/mob2.png" },
@@ -603,7 +602,7 @@
         { name: "巨水牛", size: "L", basicMat: "角片", rareMat: "乳汁", time: "全天", weather: "陰雲", coords: "(X:12, Y:17)", mapImg: "./images/map18.png", mobImg: "./images/mob18.png" },
         { name: "島嶼公山羊", size: "L", basicMat: "角片", rareMat: "絨毛", time: "03:00-06:00", weather: "任意", coords: "(X:26, Y:22)", mapImg: "./images/map19.png", mobImg: "./images/mob19.png" },
         { name: "黃金背魔鳥", size: "L", basicMat: "羽毛", rareMat: "鳥蛋", time: "全天", weather: "小雨", coords: "(X:31, Y:28)", mapImg: "./images/map20.png", mobImg: "./images/mob20.png" },
-        { name: "巨礦爬蟲", size: "L", basicMat: "尖牙", rareMat: "甲殼", time: "03:00-06:00", weather: "晴朗", coords: "地下 (X:24, Y:21)", mapImg: "./images/map21.png", mobImg: "./images/mob21.png" },
+        { name: "巨礦妖蟲", size: "L", basicMat: "尖牙", rareMat: "甲殼", time: "03:00-06:00", weather: "晴朗", coords: "地下 (X:24, Y:21)", mapImg: "./images/map21.png", mobImg: "./images/mob21.png" },
         { name: "無齒翼龍", size: "L", basicMat: "尖爪", rareMat: "角片", time: "09:00-12:00", weather: "碧空", coords: "(X:25, Y:16)", mapImg: "./images/map22.png", mobImg: "./images/mob22.png" },
         { name: "獅鷲", size: "L", basicMat: "羽毛", rareMat: "尖爪", time: "15:00-18:00", weather: "碧空", coords: "(X:14, Y:22)", mapImg: "./images/map23.png", mobImg: "./images/mob23.png" },
         { name: "古怪魔石精", size: "L", basicMat: "尖牙", rareMat: "獸毛", time: "00:00-03:00", weather: "薄霧", coords: "地下 (X:24, Y:18)", mapImg: "./images/map24.png", mobImg: "./images/mob24.png" },
@@ -657,7 +656,6 @@
         filterRareEl.appendChild(opt);
     });
 
-    // ✅ 彈窗邏輯更新：接受 mapIndex 參數來切換不同的地圖圖片
     function openModal(idx, mapIndex = '1') {
         const animal = animalData.find(a => a.originalIndex === idx);
         if(!animal) return;
@@ -667,7 +665,6 @@
         const mapImgEl = document.getElementById('modal-map-img');
         const mobImgEl = document.getElementById('modal-mob-img');
 
-        // 判斷要載入哪一張地圖
         let targetMapImg = animal.mapImg;
         if (mapIndex === '2' && animal.mapImg2) {
             targetMapImg = animal.mapImg2;
@@ -703,7 +700,7 @@
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal-trigger')) {
             const idx = parseInt(e.target.dataset.index, 10);
-            const mapIdx = e.target.dataset.map || '1'; // 取得點擊的對應地圖編號
+            const mapIdx = e.target.dataset.map || '1'; 
             openModal(idx, mapIdx);
         }
         
@@ -936,7 +933,6 @@
             card.className = 'animal-card';
             card.id = `animal-card-${index}`;
 
-            // ✅ 判斷是否為複數座標，並組裝對應的 HTML
             const coordsDisplay = animal.coords2 
                 ? `<span class="modal-trigger" data-index="${index}" data-map="1">${animal.coords}</span> <span style="text-decoration: none; color: #777;">/</span> <span class="modal-trigger" data-index="${index}" data-map="2">${animal.coords2}</span>`
                 : `<span class="modal-trigger" data-index="${index}" data-map="1">${animal.coords}</span>`;
@@ -965,7 +961,6 @@
                     </div>
                     <div class="info-row full-width">
                         <span class="info-label">座標</span>
-                        <!-- ✅ 這裡替換為支援雙座標的顯示邏輯 -->
                         <span class="info-value" style="color: #e0e0e0; font-family: monospace;" title="點擊檢視地圖與外觀">${coordsDisplay}</span>
                     </div>
                 </div>
