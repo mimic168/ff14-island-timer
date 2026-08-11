@@ -169,28 +169,15 @@
             will-change: transform, opacity;
         }
 
-        .animal-card.hidden {
-            display: none !important;
-        }
-
-        .animal-card.fade-out-anim {
-            animation: fadeOutScale 0.25s ease forwards !important;
-        }
-
-        .animal-card.prepare-fade-in {
-            opacity: 0;
-            transform: scale(0.9);
-        }
-
-        .animal-card.fade-in-anim {
-            animation: fadeInScale 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards !important;
-        }
+        .animal-card.hidden { display: none !important; }
+        .animal-card.fade-out-anim { animation: fadeOutScale 0.25s ease forwards !important; }
+        .animal-card.prepare-fade-in { opacity: 0; transform: scale(0.9); }
+        .animal-card.fade-in-anim { animation: fadeInScale 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards !important; }
 
         @keyframes fadeOutScale {
             0% { opacity: 1; transform: scale(1); }
             100% { opacity: 0; transform: scale(0.9); }
         }
-
         @keyframes fadeInScale {
             0% { opacity: 0; transform: scale(0.9); }
             100% { opacity: 1; transform: scale(1); }
@@ -224,10 +211,28 @@
             padding-bottom: 8px;
         }
 
+        /* 標題超連結樣式 */
         .animal-name {
             font-weight: bold;
             font-size: 1.1rem;
             color: var(--text-main); 
+        }
+        
+        /* 針對動物名稱移除底線 */
+        .animal-name.modal-trigger {
+            text-decoration: none; 
+        }
+
+        .modal-trigger {
+            cursor: pointer;
+            transition: color 0.2s ease;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            text-decoration-color: rgba(255,255,255,0.3);
+        }
+        .modal-trigger:hover {
+            color: var(--accent-color) !important;
+            text-decoration-color: var(--accent-color);
         }
 
         .animal-size {
@@ -270,22 +275,12 @@
             padding-bottom: 4px;
         }
 
-        /* 座標專用：橫跨兩欄的設定 */
         .info-row.full-width {
             grid-column: span 2;
         }
 
-        .info-label {
-            color: #777;
-            flex-shrink: 0;
-        }
-
-        .info-value {
-            text-align: right;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .info-label { color: #777; flex-shrink: 0; }
+        .info-value { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .animal-time-box {
             margin-top: auto;
@@ -301,19 +296,9 @@
             justify-content: space-between;
             margin-bottom: 4px;
         }
-
-        .time-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .time-label {
-            color: var(--text-muted);
-        }
-
-        .time-val {
-            font-family: monospace;
-            font-weight: bold;
-        }
+        .time-row:last-child { margin-bottom: 0; }
+        .time-label { color: var(--text-muted); }
+        .time-val { font-family: monospace; font-weight: bold; }
 
         .capture-wrapper {
             margin-top: 12px;
@@ -334,99 +319,133 @@
             transition: color 0.2s ease;
         }
 
-        .capture-cb-label:hover {
-            color: var(--text-main);
-        }
+        .capture-cb-label:hover { color: var(--text-main); }
 
         .capture-cb-label input {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            border: 2px solid #555;
-            border-radius: 4px;
-            background-color: rgba(255, 255, 255, 0.02);
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            appearance: none; -webkit-appearance: none;
+            width: 18px; height: 18px; border: 2px solid #555; border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.02); position: relative; cursor: pointer; transition: all 0.2s ease;
         }
-
-        .capture-cb-label:hover input:not(:checked) {
-            border-color: var(--accent-color);
-        }
-
-        .capture-cb-label input:checked {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
+        .capture-cb-label:hover input:not(:checked) { border-color: var(--accent-color); }
+        .capture-cb-label input:checked { background-color: var(--accent-color); border-color: var(--accent-color); }
         .capture-cb-label input:checked::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 5px;
-            width: 4px;
-            height: 8px;
-            border: solid var(--bg-dark);
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
+            content: ''; position: absolute; top: 2px; left: 5px; width: 4px; height: 8px;
+            border: solid var(--bg-dark); border-width: 0 2px 2px 0; transform: rotate(45deg);
+        }
+
+        /* 圖片彈窗 (Modal) 樣式設計 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+            z-index: 9999; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+
+        .modal-container {
+            position: relative; width: 900px; max-width: 90%; height: 60vh; min-height: 400px;
+            background-color: var(--bg-card); border: 1px solid #444; border-radius: 12px;
+            display: flex; flex-direction: column; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            transform: scale(0.95); transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-container { transform: scale(1); }
+
+        /* 彈窗標題與 SVG 關閉按鈕 */
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #333;
+        }
+        .modal-title { font-size: 1.5rem; font-weight: bold; color: var(--accent-color); }
+        
+        .modal-close-btn {
+            width: 36px; height: 36px; background-color: #333; color: #fff;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: background 0.2s ease;
+        }
+        .modal-close-btn:hover { background-color: #ff5252; }
+
+        /* 電腦版左右佈局 */
+        .modal-body {
+            display: flex; flex: 1; gap: 20px; overflow: hidden;
+        }
+        .modal-img-wrapper {
+            flex: 1; background-color: #000; border-radius: 8px; overflow: hidden;
+            position: relative; display: flex; justify-content: center; align-items: center;
+            flex-direction: column; border: 1px solid #333;
+        }
+        .modal-img-wrapper img {
+            width: 100%; height: 100%; object-fit: contain; position: absolute;
+            top: 0; left: 0; z-index: 2;
+        }
+        .modal-img-label {
+            position: absolute; top: 10px; left: 10px; z-index: 5;
+            background-color: rgba(0,0,0,0.7); color: #fff; padding: 4px 10px;
+            border-radius: 4px; font-size: 0.85rem; pointer-events: none;
+        }
+        .mobile-swipe-hint { display: none; } /* 電腦版隱藏提示 */
+
+        /* 尚未建立防呆樣式 */
+        .fallback-text {
+            color: #555; font-size: 1.5rem; font-weight: bold; z-index: 1; letter-spacing: 2px;
         }
 
         .site-footer {
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
+            text-align: center; font-size: 0.8rem; color: var(--text-muted);
+            margin-top: 40px; padding-top: 20px; border-bottom: 1px solid #333;
         }
-        
         .site-footer a {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: bold;
+            color: var(--accent-color); text-decoration: none; font-weight: bold;
             transition: color 0.2s ease, text-shadow 0.2s ease;
         }
-        
-        .site-footer a:hover {
-            color: #f0c87a;
-            text-shadow: 0 0 5px rgba(205, 165, 90, 0.5);
-        }
+        .site-footer a:hover { color: #f0c87a; text-shadow: 0 0 5px rgba(205, 165, 90, 0.5); }
 
         @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-                gap: 12px;
-                padding: 16px;
+            .dashboard { grid-template-columns: 1fr; gap: 12px; padding: 16px; }
+            .dash-divider { display: none; }
+            .dash-block { flex-direction: row; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 8px; }
+            .dash-block:last-child { border-bottom: none; padding-bottom: 0; }
+            .animal-grid { grid-template-columns: repeat(2, 1fr); }
+            
+            /* 手機版彈窗調整 (單圖滑動) */
+            .modal-container {
+                height: 70vh; padding: 12px;
+                /* 為了騰出空間給下方的關閉按鈕 */
+                margin-bottom: 60px;
             }
-            .dash-divider {
-                display: none; 
+            .modal-header .modal-close-btn { display: none; } /* 隱藏右上角關閉 */
+            
+            .modal-body {
+                /* 啟用 CSS 左右滾動捕捉，達成 App 滑動效果 */
+                overflow-x: auto; scroll-snap-type: x mandatory; gap: 0; scroll-behavior: smooth;
             }
-            .dash-block {
-                flex-direction: row; 
-                justify-content: space-between;
-                border-bottom: 1px solid #333;
-                padding-bottom: 8px;
+            /* 隱藏捲軸 */
+            .modal-body::-webkit-scrollbar { display: none; }
+            .modal-img-wrapper {
+                flex: 0 0 100%; /* 強制每個圖片佔滿 100% 寬度 */
+                scroll-snap-align: center; border: none; border-radius: 0;
             }
-            .dash-block:last-child {
-                border-bottom: none;
-                padding-bottom: 0;
+            
+            .mobile-swipe-hint {
+                display: block; font-size: 0.8rem; color: var(--accent-color); margin-left: 8px;
             }
-            .animal-grid {
-                grid-template-columns: repeat(2, 1fr);
+
+            /* 手機專用中下方 SVG 關閉按鈕 */
+            .modal-mobile-close {
+                position: absolute; bottom: -65px; left: 50%; transform: translateX(-50%);
+                width: 50px; height: 50px; background-color: #333; color: #fff;
+                border-radius: 50%; display: flex; justify-content: center; align-items: center;
+                border: 2px solid #555; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;
             }
+        }
+
+        @media (min-width: 769px) {
+            .modal-mobile-close { display: none; } /* 電腦版隱藏下方按鈕 */
         }
 
         @media (max-width: 480px) {
-            .animal-grid {
-                grid-template-columns: 1fr;
-            }
-            .main-title {
-                font-size: 1.5rem;
-            }
-            .animal-info {
-                grid-template-columns: 1fr; 
-            }
+            .animal-grid { grid-template-columns: 1fr; }
+            .main-title { font-size: 1.5rem; }
+            .animal-info { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -484,6 +503,49 @@
     </div>
 </div>
 
+<!-- 彈窗 HTML 結構 -->
+<div id="image-modal" class="modal-overlay">
+    <div class="modal-container">
+        <!-- 電腦版右上角關閉按鈕 (改用 SVG) -->
+        <div class="modal-header">
+            <div style="display:flex; align-items: baseline;">
+                <div class="modal-title" id="modal-title-text">動物名稱</div>
+                <div class="mobile-swipe-hint">← 左右滑動切換地圖與外觀 →</div>
+            </div>
+            <div class="modal-close-btn" onclick="closeModal()">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </div>
+        </div>
+        
+        <!-- 內容區塊 -->
+        <div class="modal-body">
+            <!-- 左圖/滑動第一頁：地圖 -->
+            <div class="modal-img-wrapper">
+                <div class="modal-img-label">📍 地圖位置</div>
+                <div class="fallback-text">尚未建立</div>
+                <img id="modal-map-img" src="" style="display:none;" onerror="this.style.display='none'">
+            </div>
+            <!-- 右圖/滑動第二頁：怪物 -->
+            <div class="modal-img-wrapper">
+                <div class="modal-img-label">🦖 怪物外觀</div>
+                <div class="fallback-text">尚未建立</div>
+                <img id="modal-mob-img" src="" style="display:none;" onerror="this.style.display='none'">
+            </div>
+        </div>
+
+        <!-- 手機版中下方專用關閉按鈕 (改用 SVG) -->
+        <div class="modal-mobile-close" onclick="closeModal()">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </div>
+    </div>
+</div>
+
 <script>
     const EORZEA_MULTIPLIER = 3600 / 175; 
     const EORZEA_8_HOURS_MS = 1400 * 1000; 
@@ -495,45 +557,43 @@
                 { rate: 25, weather: "碧空" },
                 { rate: 70, weather: "晴朗" },
                 { rate: 80, weather: "陰雲" },
-                { rate: 85, weather: "小雨" },
-                { rate: 90, weather: "暴雨" },
+                { rate: 90, weather: "小雨" },
                 { rate: 95, weather: "薄霧" },
-                { rate: 100, weather: "強風" }
+                { rate: 100, weather: "暴雨" }
             ]
         }
     };
 
-    // 已套用更新後的座標資料
     const animalData = [
-        { name: "樂園碧企鵝", size: "S", basicMat: "鳥蛋", rareMat: "絨毛", time: "12:00-15:00", weather: "任意", coords: "(X:19, Y:11)" },
-        { name: "黑羊", size: "S", basicMat: "乳汁", rareMat: "絨毛", time: "全天", weather: "晴朗", coords: "(X:20, Y:23)" },
-        { name: "紫晶魔石精", size: "S", basicMat: "獸毛", rareMat: "尖牙", time: "21:00-24:00", weather: "任意", coords: "地下 (X:28, Y:16)" },
-        { name: "毛爾波爾骨朵", size: "S", basicMat: "甲殼", rareMat: "尖牙", time: "03:00-06:00", weather: "陰雲", coords: "(X:19, Y:19)" },
-        { name: "狐猴", size: "S", basicMat: "獸毛", rareMat: "尖爪", time: "06:00-09:00", weather: "任意", coords: "(X:20, Y:26)" },
-        { name: "星點栗鼠", size: "S", basicMat: "獸毛", rareMat: "尖爪", time: "09:00-12:00", weather: "任意", coords: "(X:15, Y:19)" },
-        { name: "魔菇", size: "S", basicMat: "絨毛", rareMat: "獸毛", time: "15:00-18:00", weather: "小雨", coords: "(X:20, Y:27)" },
-        { name: "黃色礦爬蟲", size: "S", basicMat: "甲殼", rareMat: "尖牙", time: "全天", weather: "薄霧", coords: "(X:27, Y:19)" },
-        { name: "閃爍毛球", size: "S", basicMat: "絨毛", rareMat: "獸毛", time: "18:00-21:00", weather: "薄霧", coords: "(X:22, Y:20)" },
-        { name: "沙灘殼蟹", size: "S", basicMat: "甲殼", rareMat: "尖爪", time: "00:00-03:00", weather: "小雨", coords: "(X:17, Y:12)" },
-        { name: "樂園渡渡鳥", size: "M", basicMat: "羽毛", rareMat: "鳥蛋", time: "15:00-18:00", weather: "任意", coords: "(X:16, Y:12)" },
-        { name: "島嶼雄羚羊", size: "M", basicMat: "獸毛", rareMat: "角片", time: "18:00-21:00", weather: "任意", coords: "(X:20, Y:19)" },
-        { name: "樂園虎", size: "M", basicMat: "尖牙", rareMat: "獸毛", time: "18:00-21:00", weather: "晴朗", coords: "(X:15, Y:14)" },
-        { name: "雕齒獸", size: "M", basicMat: "尖爪", rareMat: "甲殼", time: "00:00-03:00", weather: "任意", coords: "(X:31, Y:11)" },
-        { name: "黑陸行鳥", size: "M", basicMat: "羽毛", rareMat: "獸毛", time: "全天", weather: "碧空", coords: "(X:13, Y:11)" },
-        { name: "猴面雀", size: "M", basicMat: "尖爪", rareMat: "絨毛", time: "12:00-15:00", weather: "晴朗", coords: "(X:25, Y:28)" },
-        { name: "阿爾科諾斯特", size: "M", basicMat: "羽毛", rareMat: "鳥蛋", time: "21:00-24:00", weather: "碧空", coords: "(X:23, Y:30)" },
-        { name: "巨水牛", size: "L", basicMat: "角片", rareMat: "乳汁", time: "全天", weather: "陰雲", coords: "(X:12, Y:17)" },
-        { name: "島嶼公山羊", size: "L", basicMat: "角片", rareMat: "絨毛", time: "03:00-06:00", weather: "任意", coords: "(X:26, Y:22)" },
-        { name: "黃金背魔鳥", size: "L", basicMat: "羽毛", rareMat: "鳥蛋", time: "全天", weather: "小雨", coords: "(X:31, Y:28)" },
-        { name: "巨礦爬蟲", size: "L", basicMat: "尖牙", rareMat: "甲殼", time: "03:00-06:00", weather: "晴朗", coords: "地下 (X:24, Y:21)" },
-        { name: "無齒翼龍", size: "L", basicMat: "尖爪", rareMat: "角片", time: "09:00-12:00", weather: "碧空", coords: "(X:25, Y:16)" },
-        { name: "獅鷲", size: "L", basicMat: "羽毛", rareMat: "尖爪", time: "15:00-18:00", weather: "碧空", coords: "(X:14, Y:22)" },
-        { name: "古怪魔石精", size: "L", basicMat: "尖牙", rareMat: "獸毛", time: "00:00-03:00", weather: "薄霧", coords: "地下 (X:24, Y:18)" },
-        { name: "短吻鱷", size: "L", basicMat: "尖爪", rareMat: "尖牙", time: "06:00-09:00", weather: "暴雨", coords: "(X:17, Y:24)" },
-        { name: "樂園疣豬", size: "L", basicMat: "角片", rareMat: "尖牙", time: "全天", weather: "暴雨", coords: "(X:17, Y:16)" },
-        { name: "古菩猩猩", size: "L", basicMat: "尖牙", rareMat: "尖爪", time: "09:00-12:00", weather: "陰雲", coords: "(X:33, Y:16)" },
-        { name: "魔界花", size: "L", basicMat: "尖牙", rareMat: "甲殼", time: "21:00-24:00", weather: "暴雨", coords: "(X:29, Y:24)" },
-        { name: "堅鋼龜", size: "L", basicMat: "甲殼", rareMat: "尖爪", time: "12:00-15:00", weather: "薄霧", coords: "(X:31, Y:11)" }
+        { name: "樂園碧企鵝", size: "S", basicMat: "鳥蛋", rareMat: "絨毛", time: "12:00-15:00", weather: "任意", coords: "(X:19, Y:11)", mapImg: "./images/map1.png", mobImg: "./images/mob1.png" },
+        { name: "黑羊", size: "S", basicMat: "乳汁", rareMat: "絨毛", time: "全天", weather: "晴朗", coords: "(X:20, Y:23)", mapImg: "./images/map2.png", mobImg: "./images/mob2.png" },
+        { name: "紫晶魔石精", size: "S", basicMat: "獸毛", rareMat: "尖牙", time: "21:00-24:00", weather: "任意", coords: "地下 (X:28, Y:16)", mapImg: "./images/map3.png", mobImg: "./images/mob3.png" },
+        { name: "毛爾波爾骨朵", size: "S", basicMat: "甲殼", rareMat: "尖牙", time: "03:00-06:00", weather: "陰雲", coords: "(X:19, Y:19)", mapImg: "./images/map4.png", mobImg: "./images/mob4.png" },
+        { name: "狐猴", size: "S", basicMat: "獸毛", rareMat: "尖爪", time: "06:00-09:00", weather: "任意", coords: "(X:20, Y:26)", mapImg: "./images/map5.png", mobImg: "./images/mob5.png" },
+        { name: "星點栗鼠", size: "S", basicMat: "獸毛", rareMat: "尖爪", time: "09:00-12:00", weather: "任意", coords: "(X:15, Y:19)", mapImg: "./images/map6.png", mobImg: "./images/mob6.png" },
+        { name: "魔菇", size: "S", basicMat: "絨毛", rareMat: "獸毛", time: "15:00-18:00", weather: "小雨", coords: "(X:20, Y:27)", mapImg: "./images/map7.png", mobImg: "./images/mob7.png" },
+        { name: "黃色礦爬蟲", size: "S", basicMat: "甲殼", rareMat: "尖牙", time: "全天", weather: "薄霧", coords: "(X:27, Y:19)", mapImg: "./images/map8.png", mobImg: "./images/mob8.png" },
+        { name: "閃爍毛球", size: "S", basicMat: "絨毛", rareMat: "獸毛", time: "18:00-21:00", weather: "薄霧", coords: "(X:22, Y:20)", mapImg: "./images/map9.png", mobImg: "./images/mob9.png" },
+        { name: "沙灘殼蟹", size: "S", basicMat: "甲殼", rareMat: "尖爪", time: "00:00-03:00", weather: "小雨", coords: "(X:17, Y:12)", mapImg: "./images/map10.png", mobImg: "./images/mob10.png" },
+        { name: "樂園渡渡鳥", size: "M", basicMat: "羽毛", rareMat: "鳥蛋", time: "15:00-18:00", weather: "任意", coords: "(X:16, Y:12)", mapImg: "./images/map11.png", mobImg: "./images/mob11.png" },
+        { name: "島嶼雄羚羊", size: "M", basicMat: "獸毛", rareMat: "角片", time: "18:00-21:00", weather: "任意", coords: "(X:20, Y:19)", mapImg: "./images/map12.png", mobImg: "./images/mob12.png" },
+        { name: "樂園虎", size: "M", basicMat: "尖牙", rareMat: "獸毛", time: "18:00-21:00", weather: "晴朗", coords: "(X:15, Y:14)", mapImg: "./images/map13.png", mobImg: "./images/mob13.png" },
+        { name: "雕齒獸", size: "M", basicMat: "尖爪", rareMat: "甲殼", time: "00:00-03:00", weather: "任意", coords: "(X:31, Y:11)", mapImg: "./images/map14.png", mobImg: "./images/mob14.png" },
+        { name: "黑陸行鳥", size: "M", basicMat: "羽毛", rareMat: "獸毛", time: "全天", weather: "碧空", coords: "(X:13, Y:11)", mapImg: "./images/map15.png", mobImg: "./images/mob15.png" },
+        { name: "猴面雀", size: "M", basicMat: "尖爪", rareMat: "絨毛", time: "12:00-15:00", weather: "晴朗", coords: "(X:25, Y:28)", mapImg: "./images/map16.png", mobImg: "./images/mob16.png" },
+        { name: "阿爾科諾斯特", size: "M", basicMat: "羽毛", rareMat: "鳥蛋", time: "21:00-24:00", weather: "碧空", coords: "(X:23, Y:30)", mapImg: "./images/map17.png", mobImg: "./images/mob17.png" },
+        { name: "巨水牛", size: "L", basicMat: "角片", rareMat: "乳汁", time: "全天", weather: "陰雲", coords: "(X:12, Y:17)", mapImg: "./images/map18.png", mobImg: "./images/mob18.png" },
+        { name: "島嶼公山羊", size: "L", basicMat: "角片", rareMat: "絨毛", time: "03:00-06:00", weather: "任意", coords: "(X:26, Y:22)", mapImg: "./images/map19.png", mobImg: "./images/mob19.png" },
+        { name: "黃金背魔鳥", size: "L", basicMat: "羽毛", rareMat: "鳥蛋", time: "全天", weather: "小雨", coords: "(X:31, Y:28)", mapImg: "./images/map20.png", mobImg: "./images/mob20.png" },
+        { name: "巨礦爬蟲", size: "L", basicMat: "尖牙", rareMat: "甲殼", time: "03:00-06:00", weather: "晴朗", coords: "地下 (X:24, Y:21)", mapImg: "./images/map21.png", mobImg: "./images/mob21.png" },
+        { name: "無齒翼龍", size: "L", basicMat: "尖爪", rareMat: "角片", time: "09:00-12:00", weather: "碧空", coords: "(X:25, Y:16)", mapImg: "./images/map22.png", mobImg: "./images/mob22.png" },
+        { name: "獅鷲", size: "L", basicMat: "羽毛", rareMat: "尖爪", time: "15:00-18:00", weather: "碧空", coords: "(X:14, Y:22)", mapImg: "./images/map23.png", mobImg: "./images/mob23.png" },
+        { name: "古怪魔石精", size: "L", basicMat: "尖牙", rareMat: "獸毛", time: "00:00-03:00", weather: "薄霧", coords: "地下 (X:24, Y:18)", mapImg: "./images/map24.png", mobImg: "./images/mob24.png" },
+        { name: "短吻鱷", size: "L", basicMat: "尖爪", rareMat: "尖牙", time: "06:00-09:00", weather: "暴雨", coords: "(X:17, Y:24)", mapImg: "./images/map25.png", mobImg: "./images/mob25.png" },
+        { name: "樂園疣豬", size: "L", basicMat: "角片", rareMat: "尖牙", time: "全天", weather: "暴雨", coords: "(X:17, Y:16)", mapImg: "./images/map26.png", mobImg: "./images/mob26.png" },
+        { name: "古菩猩猩", size: "L", basicMat: "尖牙", rareMat: "尖爪", time: "09:00-12:00", weather: "陰雲", coords: "(X:33, Y:16)", mapImg: "./images/map27.png", mobImg: "./images/mob27.png" },
+        { name: "魔界花", size: "L", basicMat: "尖牙", rareMat: "甲殼", time: "21:00-24:00", weather: "暴雨", coords: "(X:29, Y:24)", mapImg: "./images/map28.png", mobImg: "./images/mob28.png" },
+        { name: "堅鋼龜", size: "L", basicMat: "甲殼", rareMat: "尖爪", time: "12:00-15:00", weather: "薄霧", coords: "(X:31, Y:11)", mapImg: "./images/map29.png", mobImg: "./images/mob29.png" }
     ];
 
     animalData.forEach((animal, index) => {
@@ -549,7 +609,6 @@
     }
 
     let currentSortSignature = "";
-    
     let currentBasicFilter = 'all';
     let currentRareFilter = 'all';
     let isFiltering = false;
@@ -572,6 +631,65 @@
         opt.value = mat;
         opt.textContent = mat;
         filterRareEl.appendChild(opt);
+    });
+
+    // 彈窗功能邏輯
+    function openModal(idx) {
+        const animal = animalData.find(a => a.originalIndex === idx);
+        if(!animal) return;
+
+        document.getElementById('modal-title-text').textContent = animal.name;
+        
+        const mapImgEl = document.getElementById('modal-map-img');
+        const mobImgEl = document.getElementById('modal-mob-img');
+
+        // 地圖圖片處理
+        if (animal.mapImg) {
+            mapImgEl.src = animal.mapImg;
+            mapImgEl.style.display = 'block';
+        } else {
+            mapImgEl.src = "";
+            mapImgEl.style.display = 'none';
+        }
+
+        // 怪物圖片處理
+        if (animal.mobImg) {
+            mobImgEl.src = animal.mobImg;
+            mobImgEl.style.display = 'block';
+        } else {
+            mobImgEl.src = "";
+            mobImgEl.style.display = 'none';
+        }
+
+        document.getElementById('image-modal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('image-modal').classList.remove('show');
+    }
+
+    // 點擊背景黑底也能關閉彈窗
+    document.getElementById('image-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // 動態綁定點擊事件
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-trigger')) {
+            const idx = parseInt(e.target.dataset.index, 10);
+            openModal(idx);
+        }
+        
+        if (e.target.classList.contains('capture-cb')) {
+            const idx = parseInt(e.target.dataset.index, 10);
+            if (e.target.checked) {
+                if (!capturedAnimals.includes(idx)) capturedAnimals.push(idx);
+            } else {
+                capturedAnimals = capturedAnimals.filter(i => i !== idx);
+            }
+            localStorage.setItem('ff14_island_captured', JSON.stringify(capturedAnimals));
+            updateAnimalSpawns(); 
+        }
     });
 
     async function applyFilterAnimation() {
@@ -670,19 +788,6 @@
     filterRareEl.addEventListener('change', (e) => {
         currentRareFilter = e.target.value;
         applyFilterAnimation();
-    });
-
-    document.addEventListener('change', (e) => {
-        if (e.target.classList.contains('capture-cb')) {
-            const idx = parseInt(e.target.dataset.index, 10);
-            if (e.target.checked) {
-                if (!capturedAnimals.includes(idx)) capturedAnimals.push(idx);
-            } else {
-                capturedAnimals = capturedAnimals.filter(i => i !== idx);
-            }
-            localStorage.setItem('ff14_island_captured', JSON.stringify(capturedAnimals));
-            updateAnimalSpawns(); 
-        }
     });
 
     function calculateForecastTarget(date) {
@@ -786,7 +891,7 @@
             card.id = `animal-card-${index}`;
             card.innerHTML = `
                 <div class="animal-header">
-                    <div class="animal-name">${animal.name}</div>
+                    <div class="animal-name modal-trigger" data-index="${index}">${animal.name}</div>
                     <div class="animal-size">SIZE: <span class="size-badge size-${animal.size}">${animal.size}</span></div>
                 </div>
                 <div class="animal-info">
@@ -808,7 +913,7 @@
                     </div>
                     <div class="info-row full-width">
                         <span class="info-label">座標</span>
-                        <span class="info-value" style="color: #e0e0e0; font-family: monospace;">${animal.coords}</span>
+                        <span class="info-value modal-trigger" data-index="${index}" style="color: #e0e0e0; font-family: monospace;" title="點擊檢視地圖與外觀">${animal.coords}</span>
                     </div>
                 </div>
                 <div class="animal-time-box">
