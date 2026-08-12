@@ -199,7 +199,6 @@
             z-index: 10; 
         }
 
-        /* ✅ 星級系統樣式 (注音/Furigana 風格，字體放大) */
         .star-rating {
             color: #ffd700;
             font-size: 0.8rem;
@@ -211,7 +210,6 @@
             margin-bottom: 2px;
         }
 
-        /* 3階捕捉高亮樣式 (金、銀、綠) */
         .animal-card.active-green {
             border-color: #4caf50;
             background-color: rgba(76, 175, 80, 0.1); 
@@ -230,7 +228,6 @@
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
 
-        /* 已捕捉樣式弱化 */
         .animal-card.captured-style {
             opacity: 0.4;
             filter: grayscale(100%);
@@ -243,7 +240,6 @@
             text-shadow: none;
         }
 
-        /* 標題列排版調整：靠下對齊 */
         .animal-header {
             display: flex;
             justify-content: space-between;
@@ -253,7 +249,6 @@
             padding-bottom: 8px;
         }
 
-        /* 標題超連結樣式 */
         .animal-name {
             font-weight: bold;
             font-size: 1.1rem;
@@ -289,7 +284,6 @@
             line-height: 1;
         }
 
-        /* SIZE 標籤：解決大寫英文字母視覺偏下的問題 */
         .size-badge {
             display: inline-block;
             min-width: 28px; 
@@ -329,7 +323,6 @@
         .info-label { color: #777; flex-shrink: 0; }
         .info-value { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* ✅ 將 background-color 的透明度從 0.2 調高至 0.35 */
         .animal-time-box {
             margin-top: auto;
             background-color: rgba(0, 0, 0, 0.35);
@@ -337,6 +330,8 @@
             border-radius: 6px;
             padding: 8px 10px;
             font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
         }
 
         .time-row {
@@ -348,11 +343,26 @@
         .time-label { color: var(--text-muted); }
         .time-val { font-family: monospace; font-weight: bold; transition: color 0.3s ease; }
 
-        /* 分隔線樣式 */
         .time-divider {
             height: 1px;
             background-color: rgba(255, 255, 255, 0.1);
             margin: 6px 0;
+        }
+
+        /* 試做功能：最近五次出現時間觸發器 (獨立區塊，間距微調) */
+        .recent-spawns-trigger {
+            display: inline-block;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-color: rgba(255,255,255,0.2);
+            transition: color 0.2s ease, text-decoration-color 0.2s ease;
+        }
+        .recent-spawns-trigger:hover {
+            color: var(--accent-color);
+            text-decoration-color: var(--accent-color);
         }
 
         .capture-wrapper {
@@ -388,7 +398,7 @@
             border: solid var(--bg-dark); border-width: 0 2px 2px 0; transform: rotate(45deg);
         }
 
-        /* 圖片彈窗 (Modal) */
+        /* 彈窗共通設定 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
@@ -421,6 +431,8 @@
         .modal-body {
             display: flex; flex: 1; gap: 20px; overflow: hidden;
         }
+        
+        /* 圖片彈窗樣式 */
         .modal-img-wrapper {
             flex: 1; background-color: #000; border-radius: 8px; overflow: hidden;
             position: relative; display: flex; justify-content: center; align-items: center;
@@ -439,6 +451,53 @@
 
         .fallback-text {
             color: #555; font-size: 1.5rem; font-weight: bold; z-index: 1; letter-spacing: 2px;
+        }
+
+        /* 歷史時間表格彈窗樣式 */
+        .table-wrapper {
+            border: 1px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #151515;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            margin-top: 4px;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+        .history-table th {
+            text-align: center;
+            padding: 14px 12px;
+            background: linear-gradient(to bottom, #2c2c2c, #1f1f1f);
+            border-bottom: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            position: sticky;
+            top: 0;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            font-weight: bold;
+        }
+        .history-table td {
+            text-align: center;
+            padding: 14px 12px;
+            border-bottom: 1px solid #2a2a2a;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+        .history-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+        .history-table tbody tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .history-table tbody tr:hover {
+            background-color: rgba(205, 165, 90, 0.1); 
+        }
+        .history-table tr:last-child td {
+            border-bottom: none;
         }
 
         .site-footer {
@@ -532,6 +591,7 @@
     </div>
 </div>
 
+<!-- 圖片彈窗 -->
 <div id="image-modal" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
@@ -559,6 +619,43 @@
             </div>
         </div>
         <div class="modal-mobile-close" onclick="closeModal()">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- 歷史出現時間彈窗 -->
+<div id="history-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 650px; height: auto; min-height: 300px; max-height: 80vh;">
+        <div class="modal-header">
+            <div class="modal-title" id="history-modal-title">最近五次出現時間</div>
+            <div class="modal-close-btn" onclick="closeHistoryModal()">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </div>
+        </div>
+        <div class="modal-body" style="display: block; overflow-y: auto;">
+            <div class="table-wrapper">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>開始時間</th>
+                            <th>持續時間</th>
+                            <th>休眠期</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- JS 動態產生 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-mobile-close" onclick="closeHistoryModal()">
             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -701,11 +798,100 @@
         if (e.target === this) closeModal();
     });
 
+    function closeHistoryModal() {
+        document.getElementById('history-modal').classList.remove('show');
+    }
+
+    document.getElementById('history-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeHistoryModal();
+    });
+
+    function openHistoryModal(idx) {
+        const animal = animalData.find(a => a.originalIndex === idx);
+        if (!animal) return;
+        
+        document.getElementById('history-modal-title').textContent = `${animal.name} - 最近五次出現時間`;
+        
+        const nowSec = Math.floor(Date.now() / 1000);
+        const tbody = document.getElementById('history-table-body');
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">計算中...</td></tr>';
+        
+        document.getElementById('history-modal').classList.add('show');
+
+        setTimeout(() => {
+            let spawns = [];
+            let currentSec = nowSec;
+            
+            for (let i = 0; i < 6; i++) {
+                let spawn = getContinuousSpawn(animal, currentSec);
+                if (!spawn) break;
+                spawns.push(spawn);
+                currentSec = spawn.end; 
+            }
+
+            tbody.innerHTML = '';
+            
+            if (spawns.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">近期無出現預測</td></tr>';
+                return;
+            }
+
+            const loopCount = Math.min(5, spawns.length);
+            for (let i = 0; i < loopCount; i++) {
+                const current = spawns[i];
+                const next = spawns[i+1];
+                
+                const startStr = formatLocalDateTime(new Date(current.start * 1000));
+                
+                const durationSec = current.end - current.start;
+                const durationStr = formatCustomDuration(durationSec, false);
+                
+                let dormancyStr = '--';
+                if (next) {
+                    const dormSec = next.start - current.end;
+                    dormancyStr = formatCustomDuration(dormSec, true);
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${startStr}</td>
+                    <td>${durationStr}</td>
+                    <td>${dormancyStr}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }, 50);
+    }
+
+    // 更新的自定義持續時間格式化函數 (供彈窗內休眠期顯示 D天 HH:MM:SS 使用)
+    function formatCustomDuration(totalSeconds, isDormancy = false) {
+        const d = Math.floor(totalSeconds / 86400);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        
+        if (isDormancy) {
+            const h = Math.floor((totalSeconds % 86400) / 3600);
+            if (d > 0) {
+                return `${d}天 ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            } else {
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+        } else {
+            const h = Math.floor(totalSeconds / 3600);
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+    }
+
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal-trigger')) {
             const idx = parseInt(e.target.dataset.index, 10);
             const mapIdx = e.target.dataset.map || '1'; 
             openModal(idx, mapIdx);
+        }
+
+        if (e.target.classList.contains('recent-spawns-trigger')) {
+            const idx = parseInt(e.target.dataset.index, 10);
+            openHistoryModal(idx);
         }
         
         if (e.target.classList.contains('capture-cb')) {
@@ -845,13 +1031,6 @@
         return `${h}:${m}`;
     }
 
-    function formatCountdown(ms) {
-        const totalSeconds = Math.floor(ms / 1000);
-        const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-        const s = String(totalSeconds % 60).padStart(2, '0');
-        return `${m}:${s}`;
-    }
-
     function findNextSpawnInfo(animal, nowSec) {
         let blockStartSec = nowSec - (nowSec % 1400); 
         for (let i = 0; i < 1852; i++) {
@@ -973,6 +1152,7 @@
                         <span class="info-value" style="color: #e0e0e0; font-family: monospace;" title="點擊檢視地圖與外觀">${coordsDisplay}</span>
                     </div>
                 </div>
+                
                 <div class="animal-time-box">
                     <div class="time-row">
                         <span class="time-label">下一次出現：</span>
@@ -992,6 +1172,12 @@
                         <span class="time-val" id="dormancy-${index}" style="color: #757575;">--:--:--</span>
                     </div>
                 </div>
+
+                <!-- 獨立的近期出現時間按鈕，與 time-box 保持微小間距 -->
+                <div style="text-align: right; margin-top: 4px;">
+                    <span class="recent-spawns-trigger" data-index="${index}">最近五次出現時間</span>
+                </div>
+
                 <div class="capture-wrapper">
                     <label class="capture-cb-label">
                         <input type="checkbox" class="capture-cb" data-index="${index}" ${isCaptured ? 'checked' : ''}>
@@ -1024,6 +1210,7 @@
                     let nextNextSpawn = getContinuousSpawn(animal, animal._spawnInfo.end);
                     if (nextNextSpawn) {
                         let dormancySec = nextNextSpawn.start - animal._spawnInfo.end;
+                        // 恢復外面卡片的休眠期顯示為 HH:MM:SS
                         animal._dormancyStr = formatCountdownHms(dormancySec);
                         animal._nextNextTimeStr = formatLocalDateTime(new Date(nextNextSpawn.start * 1000));
                     } else {
