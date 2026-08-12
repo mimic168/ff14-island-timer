@@ -349,7 +349,7 @@
             margin: 6px 0;
         }
 
-        /* 試做功能：最近五次出現時間觸發器 (獨立區塊，間距微調) */
+        /* 近期出現時間觸發器 */
         .recent-spawns-trigger {
             display: inline-block;
             color: var(--text-muted);
@@ -465,7 +465,6 @@
         .history-table {
             width: 100%;
             border-collapse: collapse;
-            color: var(--text-main);
             font-size: 0.95rem;
         }
         .history-table th {
@@ -486,6 +485,8 @@
             border-bottom: 1px solid #2a2a2a;
             font-family: monospace;
             font-size: 1rem;
+            font-weight: bold; /* 加粗與外面卡片時間統一 */
+            color: #cccccc;    /* 稍微灰階一點，降低刺眼感 */
         }
         .history-table tbody tr {
             transition: background-color 0.2s ease;
